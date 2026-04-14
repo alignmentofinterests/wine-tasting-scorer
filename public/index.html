@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">&#127863;</div>
+    <div class="logo"><img src="" alt="Granate Wine Club"></div>
     <h1>Blind Tasting</h1>
     <p class="subtitle">Enter your details to begin scoring</p>
 
@@ -40,6 +40,7 @@
     const wineHint = document.getElementById('wine-hint');
     const joinBtn = document.getElementById('join-btn');
 
+    // Load config to show wine count
     async function loadConfig() {
       try {
         const res = await fetch('/api/config');
@@ -48,7 +49,7 @@
           startInput.max = data.numWines;
           wineHint.textContent = `Enter a number between 1 and ${data.numWines}`;
         } else {
-          showStatus('The host has not set up the tasting yet. Please wait and refresh.', 'error');
+          showStatus('The host hasn\u2019t set up the tasting yet. Please wait and refresh.', 'error');
           joinBtn.disabled = true;
         }
       } catch (e) {
@@ -65,22 +66,53 @@
       e.preventDefault();
       joinBtn.disabled = true;
       joinBtn.textContent = 'Joining...';
+
       try {
         const res = await fetch('/api/join', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: nameInput.value.trim(), startingWine: parseInt(startInput.value) }),
+          body: JSON.stringify({
+            name: nameInput.value.trim(),
+            startingWine: parseInt(startInput.value),
+          }),
         });
+
         const data = await res.json();
-        if (!res.ok) { showStatus(data.error, 'error'); joinBtn.disabled = false; joinBtn.textContent = 'Start Tasting'; return; }
-        sessionStorage.setItem('wine_taster', JSON.stringify({ name: data.name, startingWine: data.startingWine, numWines: data.numWines }));
+
+        if (!res.ok) {
+          showStatus(data.error, 'error');
+          joinBtn.disabled = false;
+          joinBtn.textContent = 'Start Tasting';
+          return;
+        }
+
+        // Store session in sessionStorage
+        sessionStorage.setItem('wine_taster', JSON.stringify({
+          name: data.name,
+          startingWine: data.startingWine,
+          numWines: data.numWines,
+        }));
+
+        // Navigate to scoring page
         window.location.href = '/score';
-      } catch (err) { showStatus('Connection error. Please try again.', 'error'); joinBtn.disabled = false; joinBtn.textContent = 'Start Tasting'; }
+
+      } catch (err) {
+        showStatus('Connection error. Please try again.', 'error');
+        joinBtn.disabled = false;
+        joinBtn.textContent = 'Start Tasting';
+      }
     });
 
+    // Check if already joined
     const existing = sessionStorage.getItem('wine_taster');
-    if (existing) { const data = JSON.parse(existing); nameInput.value = data.name; startInput.value = data.startingWine; }
+    if (existing) {
+      const data = JSON.parse(existing);
+      nameInput.value = data.name;
+      startInput.value = data.startingWine;
+    }
+
     loadConfig();
   </script>
+<script src="/logo.js"></script>
 </body>
 </html>
