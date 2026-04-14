@@ -11,6 +11,7 @@ const store = {
   rankingsRevealed: false,
   participants: [],
   scores: {},
+  wineNames: {},
 };
 
 const MIME = {
@@ -26,10 +27,7 @@ function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
     req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try { resolve(JSON.parse(body)); }
-      catch { resolve({}); }
-    });
+    req.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve({}); } });
     req.on('error', reject);
   });
 }
@@ -50,8 +48,7 @@ function serveFile(res, filePath) {
 }
 
 function requireAdmin(req) {
-  const pw = req.headers['x-admin-password'];
-  return pw === store.adminPassword;
+  return req.headers['x-admin-password'] === store.adminPassword;
 }
 
 function computeRankings() {
@@ -64,18 +61,20 @@ function computeRankings() {
       if (s !== undefined) wineScores.push(s);
     }
     if (wineScores.length === 0) {
-      rankings.push({ wine: w, average: 0, stdDev: Infinity, numScores: 0, scores: wineScores });
+      rankings.push({ wine: w, name: store.wineNames[String(w)] || null, average: 0, stdDev: Infinity, numScores: 0, scores: wineScores });
       continue;
     }
     const avg = wineScores.reduce((a, b) => a + b, 0) / wineScores.length;
     const variance = wineScores.reduce((sum, s) => sum + Math.pow(s - avg, 2), 0) / wineScores.length;
     const stdDev = Math.sqrt(variance);
-    rankings.push({ wine: w, average: Math.round(avg * 100) / 100, stdDev: Math.round(stdDev * 100) / 100, numScores: wineScores.length, scores: wineScores });
+    rankings.push({ wine: w, name: store.wineNames[String(w)] || null, average: Math.round(avg * 100) / 100, stdDev: Math.round(stdDev * 100) / 100, numScores: wineScores.length, scores: wineScores });
   }
-  rankings.sort((a, b) => { if (b.average !== a.average) return b.average - a.average; return a.stdDev - b.stdDev; });
+  rankings.sort((a, b) => b.average !== a.average ? b.average - a.average : a.stdDev - b.stdDev);
   let rank = 1;
   for (let i = 0; i < rankings.length; i++) {
-    if (i > 0 && rankings[i].average === rankings[i - 1].average && rankings[i].stdDev === rankings[i - 1].stdDev) { rankings[i].rank = rankings[i - 1].rank; } else { rankings[i].rank = rank; }
+    if (i > 0 && rankings[i].average === rankings[i-1].average && rankings[i].stdDev === rankings[i-1].stdDev) {
+      rankings[i].rank = rankings[i-1].rank;
+    } else { rankings[i].rank = rank; }
     rank++;
   }
   return rankings;
@@ -97,9 +96,13 @@ async function handleRequest(req, res) {
     if (store.numWines === 0) return json(res, { error: 'The host has not set up the tasting yet. Please wait.' }, 400);
     const trimmedName = name.trim();
     const startNum = parseInt(startingWine);
-    if (!startNum || startNum < 1 || startNum > store.numWines) return json(res, { error: `Starting wine must be between 1 and ${store.numWines}` }, 400);
+    if (!startNum || startNum < 1 || startNum > store.numWines) {
+      return json(res, { error: 'Starting wine must be between 1 and ' + store.numWines }, 400);
+    }
     const existing = store.participants.find(p => p.name.toLowerCase() === trimmedName.toLowerCase());
-    if (existing) return json(res, { success: true, name: existing.name, startingWine: existing.startingWine, numWines: store.numWines, scores: store.scores[existing.name] || {}, rejoined: true });
+    if (existing) {
+      return json(res, { success: true, name: existing.name, startingWine: existing.startingWine, numWines: store.numWines, scores: store.scores[existing.name] || {}, rejoined: true });
+    }
     store.participants.push({ name: trimmedName, startingWine: startNum, joinedAt: new Date().toISOString() });
     store.scores[trimmedName] = {};
     return json(res, { success: true, name: trimmedName, startingWine: startNum, numWines: store.numWines, scores: {}, rejoined: false });
@@ -109,7 +112,8 @@ async function handleRequest(req, res) {
     const body = await readBody(req);
     const { name, wine, score } = body;
     if (!name || !wine || score === undefined) return json(res, { error: 'Name, wine, and score are required' }, 400);
-    const wineNum = parseInt(wine); const scoreNum = parseInt(score);
+    const wineNum = parseInt(wine);
+    const scoreNum = parseInt(score);
     if (wineNum < 1 || wineNum > store.numWines) return json(res, { error: 'Invalid wine number' }, 400);
     if (scoreNum < 1 || scoreNum > 10) return json(res, { error: 'Score must be between 1 and 10' }, 400);
     const participant = store.participants.find(p => p.name.toLowerCase() === name.toLowerCase());
@@ -156,9 +160,22 @@ async function handleRequest(req, res) {
     return json(res, { success: true, numWines: num });
   }
 
+  if (method === 'POST' && pathname === '/api/admin/wine-names') {
+    if (!requireAdmin(req)) return json(res, { error: 'Unauthorized' }, 401);
+    const body = await readBody(req);
+    if (body.names && typeof body.names === 'object') {
+      store.wineNames = {};
+      for (const [k, v] of Object.entries(body.names)) {
+        const trimmed = String(v).trim();
+        if (trimmed) store.wineNames[k] = trimmed;
+      }
+    }
+    return json(res, { success: true, wineNames: store.wineNames });
+  }
+
   if (method === 'GET' && pathname === '/api/admin/scores') {
     if (!requireAdmin(req)) return json(res, { error: 'Unauthorized' }, 401);
-    return json(res, { numWines: store.numWines, rankingsRevealed: store.rankingsRevealed, participants: store.participants, scores: store.scores, rankings: computeRankings() });
+    return json(res, { numWines: store.numWines, rankingsRevealed: store.rankingsRevealed, participants: store.participants, scores: store.scores, wineNames: store.wineNames, rankings: computeRankings() });
   }
 
   if (method === 'POST' && pathname === '/api/admin/reveal') {
@@ -170,14 +187,20 @@ async function handleRequest(req, res) {
 
   if (method === 'POST' && pathname === '/api/admin/reset') {
     if (!requireAdmin(req)) return json(res, { error: 'Unauthorized' }, 401);
-    store.participants = []; store.scores = {}; store.rankingsRevealed = false;
+    store.participants = [];
+    store.scores = {};
+    store.wineNames = {};
+    store.rankingsRevealed = false;
     return json(res, { success: true });
   }
 
   const pageRoutes = { '/': '/index.html', '/score': '/score.html', '/admin': '/admin.html', '/results': '/results.html' };
   let filePath;
-  if (pageRoutes[pathname]) { filePath = path.join(__dirname, 'public', pageRoutes[pathname]); }
-  else { filePath = path.join(__dirname, 'public', pathname); }
+  if (pageRoutes[pathname]) {
+    filePath = path.join(__dirname, 'public', pageRoutes[pathname]);
+  } else {
+    filePath = path.join(__dirname, 'public', pathname);
+  }
   const publicDir = path.join(__dirname, 'public');
   if (!path.resolve(filePath).startsWith(publicDir)) { res.writeHead(403); return res.end('Forbidden'); }
   serveFile(res, filePath);
@@ -185,6 +208,5 @@ async function handleRequest(req, res) {
 
 const server = http.createServer(handleRequest);
 server.listen(PORT, () => {
-  console.log(`Wine Tasting Scorer running on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser`);
+  console.log('Wine Tasting Scorer running on port ' + PORT);
 });
