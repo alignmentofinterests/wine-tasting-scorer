@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Admin - Wine Tasting</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container admin-page">
+    <div id="login-section">
+      <div class="logo">&#127863;</div>
+      <h1>Host Login</h1>
+      <form id="login-form" autocomplete="off">
+        <div class="form-group"><label for="password">Password</label><input type="password" id="password" required autofocus></div>
+        <div id="login-error" class="status-msg error hidden"></div>
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+      <div class="footer-links"><a href="/">&larr; Back</a></div>
+    </div>
+    <div id="admin-section" class="hidden">
+      <div class="admin-header"><h1>&#127863; Host Panel</h1><button class="btn-small btn-danger" id="logout-btn">Logout</button></div>
+      <div class="card"><h2>Event Setup</h2>
+        <div class="config-row"><label for="num-wines">Number of wines:</label><input type="number" id="num-wines" min="1" max="100" inputmode="numeric"><button class="btn-primary btn-small" id="set-wines-btn">Set</button></div>
+        <p class="hint" id="config-status"></p>
+      </div>
+      <div class="card"><h2>Participants <span class="badge" id="participant-count">0</span></h2><div id="participants-list" class="participants-list"></div></div>
+      <div class="card"><h2>Score Matrix</h2><div class="table-wrap"><table id="score-table" class="score-table"><thead id="score-thead"></thead><tbody id="score-tbody"></tbody></table></div></div>
+      <div class="card"><h2>Rankings</h2>
+        <div class="reveal-controls"><button class="btn-primary" id="reveal-btn">Reveal Rankings</button><button class="btn-secondary hidden" id="hide-btn">Hide Rankings</button><span id="reveal-status" class="reveal-status"></span></div>
+        <div id="rankings-list" class="rankings-list"></div>
+      </div>
+      <div class="card card-danger"><h2>Reset</h2><p class="hint">Clear all participants and scores. This cannot be undone.</p><button class="btn-danger" id="reset-btn">Reset All Data</button></div>
+    </div>
+  </div>
+  <script>
+    let adminPassword = '', refreshInterval = null;
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pw = document.getElementById('password').value;
+      try {
+        const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+        if (res.ok) { adminPassword = pw; document.getElementById('login-section').classList.add('hidden'); document.getElementById('admin-section').classList.remove('hidden'); loadAdminData(); refreshInterval = setInterval(loadAdminData, 5000); }
+        else { const err = document.getElementById('login-error'); err.textContent = 'Incorrect password'; err.classList.remove('hidden'); }
+      } catch(e) { alert('Connection error'); }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => { adminPassword = ''; clearInterval(refreshInterval); document.getElementById('login-section').classList.remove('hidden'); document.getElementById('admin-section').classList.add('hidden'); document.getElementById('password').value = ''; });
+
+    function adminHeaders() { return { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword }; }
+
+    document.getElementById('set-wines-btn').addEventListener('click', async () => {
+      const num = parseInt(document.getElementById('num-wines').value); if (!num || num < 1) return;
+      const res = await fetch('/api/admin/config', { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ numWines: num }) });
+      if (res.ok) { document.getElementById('config-status').textContent = `Set to ${num} wines`; loadAdminData(); }
+    });
+
+    async function loadAdminData() {
+      try {
+        const res = await fetch('/api/admin/scores', { headers: adminHeaders() }); if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('num-wines').value = data.numWines || '';
+        document.getElementById('participant-count').textContent = data.participants.length;
+        const revealBtn = document.getElementById('reveal-btn'), hideBtn = document.getElementById('hide-btn'), revealStatus = document.getElementById('reveal-status');
+        if (data.rankingsRevealed) { revealBtn.classList.add('hidden'); hideBtn.classList.remove('hidden'); revealStatus.textContent = 'Rankings are LIVE'; revealStatus.className = 'reveal-status live'; }
+        else { revealBtn.classList.remove('hidden'); hideBtn.classList.add('hidden'); revealStatus.textContent = 'Rankings hidden'; revealStatus.className = 'reveal-status'; }
+        const pList = document.getElementById('participants-list');
+        if (data.participants.length === 0) pList.innerHTML = '<p class="hint">No participants yet</p>';
+        else pList.innerHTML = data.participants.map(p => { const scored = Object.keys(data.scores[p.name] || {}).length; const pct = data.numWines > 0 ? Math.round((scored / data.numWines) * 100) : 0; return `<div class="participant-row"><span class="p-name">${escHtml(p.name)}</span><span class="p-start">Start: #${p.startingWine}</span><div class="p-progress"><div class="p-progress-bar" style="width:${pct}%"></div></div><span class="p-score-count">${scored}/${data.numWines}</span></div>`; }).join('');
+        renderScoreTable(data); renderRankings(data.rankings, data.numWines);
+      } catch(e) { console.error('Failed to load admin data', e); }
+    }
+
+    function renderScoreTable(data) {
+      const thead = document.getElementById('score-thead'), tbody = document.getElementById('score-tbody');
+      if (data.numWines === 0 || data.participants.length === 0) { thead.innerHTML = ''; tbody.innerHTML = '<tr><td class="hint">No data yet</td></tr>'; return; }
+      let headerHtml = '<tr><th>Name</th>'; for (let w = 1; w <= data.numWines; w++) headerHtml += `<th>#${w}</th>`; headerHtml += '</tr>'; thead.innerHTML = headerHtml;
+      let bodyHtml = '';
+      for (const p of data.participants) { bodyHtml += `<tr><td class="p-name-cell">${escHtml(p.name)}</td>`; for (let w = 1; w <= data.numWines; w++) { const s = data.scores[p.name]?.[w]; bodyHtml += `<td class="${s !== undefined ? 'scored-cell' : 'empty-cell'}">${s !== undefined ? s : '-'}</td>`; } bodyHtml += '</tr>'; }
+      bodyHtml += '<tr class="avg-row"><td><strong>Avg</strong></td>'; for (let w = 1; w <= data.numWines; w++) { const wScores = data.participants.map(p => data.scores[p.name]?.[w]).filter(s => s !== undefined); if (wScores.length > 0) { const avg = (wScores.reduce((a, b) => a + b, 0) / wScores.length).toFixed(1); bodyHtml += `<td><strong>${avg}</strong></td>`; } else bodyHtml += '<td>-</td>'; } bodyHtml += '</tr>';
+      tbody.innerHTML = bodyHtml;
+    }
+
+    function renderRankings(rankings, numWines) {
+      const container = document.getElementById('rankings-list');
+      if (!rankings || rankings.length === 0 || numWines === 0) { container.innerHTML = '<p class="hint">No scores yet</p>'; return; }
+      container.innerHTML = rankings.map(r => { const medal = r.rank === 1 ? '&#129351;' : r.rank === 2 ? '&#129352;' : r.rank === 3 ? '&#129353;' : ''; return `<div class="ranking-row ${r.rank <= 3 ? 'top-' + r.rank : ''}"><span class="rank">${medal} #${r.rank}</span><span class="r-wine">Wine #${r.wine}</span><span class="r-avg">Avg: ${r.average.toFixed(2)}</span><span class="r-std">SD: ${r.stdDev.toFixed(2)}</span><span class="r-count">(${r.numScores} scores)</span></div>`; }).join('');
+    }
+
+    document.getElementById('reveal-btn').addEventListener('click', async () => { await fetch('/api/admin/reveal', { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ revealed: true }) }); loadAdminData(); });
+    document.getElementById('hide-btn').addEventListener('click', async () => { await fetch('/api/admin/reveal', { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ revealed: false }) }); loadAdminData(); });
+    document.getElementById('reset-btn').addEventListener('click', async () => { if (!confirm('Are you sure? This will delete ALL participants and scores.')) return; await fetch('/api/admin/reset', { method: 'POST', headers: adminHeaders() }); loadAdminData(); });
+
+    function escHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+  </script>
+</body>
+</html>
