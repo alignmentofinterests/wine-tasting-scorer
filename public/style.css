@@ -1,3 +1,42 @@
+
+
+/* --- Wine Name Inputs (Admin) --- */
+
+.wine-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.wine-name-label {
+  min-width: 70px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.wine-name-input {
+  flex: 1;
+  background: var(--bg-dark);
+  border: 1px solid var(--wine-deep);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--cream);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.wine-name-input:focus {
+  outline: none;
+  border-color: var(--wine-primary);
+}
+
+.wine-name-input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.6;
+}
 :root {
   --bg-dark: #1a0a0e;
   --bg-card: #2a1218;
