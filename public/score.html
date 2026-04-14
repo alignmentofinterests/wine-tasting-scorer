@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Score Wines</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container score-page">
+    <div class="score-header">
+      <span id="taster-name" class="taster-name"></span>
+      <a href="/results" class="results-link" id="results-link">Rankings</a>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text"></div>
+    <div class="wine-display" id="wine-display">
+      <div class="wine-number-label">WINE</div>
+      <div class="wine-number" id="wine-number"></div>
+    </div>
+    <div class="score-section">
+      <p class="score-label">Your Score</p>
+      <div class="score-grid" id="score-grid"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-nav" id="prev-btn">&larr; Prev</button>
+      <div class="wine-dots" id="wine-dots"></div>
+      <button class="btn-nav" id="next-btn">Next &rarr;</button>
+    </div>
+    <div class="wine-jump"><button class="btn-small" id="jump-btn">Jump to wine...</button></div>
+    <div class="modal hidden" id="jump-modal">
+      <div class="modal-content">
+        <h3>Jump to Wine</h3>
+        <div class="jump-grid" id="jump-grid"></div>
+        <button class="btn-small" onclick="document.getElementById('jump-modal').classList.add('hidden')">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    let session = null, currentIndex = 0, tastingOrder = [], scores = {};
+
+    function init() {
+      const stored = sessionStorage.getItem('wine_taster');
+      if (!stored) { window.location.href = '/'; return; }
+      session = JSON.parse(stored);
+      document.getElementById('taster-name').textContent = session.name;
+      tastingOrder = [];
+      for (let i = 0; i < session.numWines; i++) {
+        tastingOrder.push(((session.startingWine - 1 + i) % session.numWines) + 1);
+      }
+      loadScores().then(() => { renderCurrentWine(); buildScoreGrid(); buildJumpGrid(); updateProgress(); });
+      checkRankings(); setInterval(checkRankings, 10000);
+    }
+
+    async function loadScores() {
+      try { const res = await fetch(`/api/scores/${encodeURIComponent(session.name)}`); if (res.ok) { const data = await res.json(); scores = data.scores || {}; } } catch(e) {}
+    }
+
+    async function checkRankings() {
+      try { const res = await fetch('/api/config'); const data = await res.json(); const link = document.getElementById('results-link'); if (data.rankingsRevealed) link.classList.add('visible'); else link.classList.remove('visible'); } catch(e) {}
+    }
+
+    function renderCurrentWine() {
+      const wineNum = tastingOrder[currentIndex];
+      document.getElementById('wine-number').textContent = `#${wineNum}`;
+      const buttons = document.querySelectorAll('.score-btn');
+      const currentScore = scores[wineNum];
+      buttons.forEach(btn => { btn.classList.toggle('active', parseInt(btn.dataset.score) === currentScore); });
+      updateProgress(); updateDots();
+    }
+
+    function buildScoreGrid() {
+      const grid = document.getElementById('score-grid'); grid.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('button'); btn.className = 'score-btn'; btn.dataset.score = i; btn.textContent = i;
+        btn.addEventListener('click', () => submitScore(i)); grid.appendChild(btn);
+      }
+    }
+
+    function buildJumpGrid() {
+      const grid = document.getElementById('jump-grid'); grid.innerHTML = '';
+      for (let i = 0; i < tastingOrder.length; i++) {
+        const wineNum = tastingOrder[i];
+        const btn = document.createElement('button'); btn.className = 'jump-btn' + (scores[wineNum] ? ' scored' : ''); btn.textContent = `#${wineNum}`;
+        btn.addEventListener('click', () => { currentIndex = i; renderCurrentWine(); document.getElementById('jump-modal').classList.add('hidden'); });
+        grid.appendChild(btn);
+      }
+    }
+
+    function updateProgress() {
+      const scored = tastingOrder.filter(w => scores[w] !== undefined).length;
+      const total = tastingOrder.length; const pct = total > 0 ? (scored / total) * 100 : 0;
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = `${scored} of ${total} wines scored`;
+    }
+
+    function updateDots() {
+      const container = document.getElementById('wine-dots');
+      if (tastingOrder.length > 20) { container.textContent = `${currentIndex + 1} / ${tastingOrder.length}`; return; }
+      container.innerHTML = '';
+      for (let i = 0; i < tastingOrder.length; i++) {
+        const dot = document.createElement('span'); dot.className = 'dot';
+        if (i === currentIndex) dot.classList.add('current');
+        if (scores[tastingOrder[i]] !== undefined) dot.classList.add('scored');
+        dot.addEventListener('click', () => { currentIndex = i; renderCurrentWine(); });
+        container.appendChild(dot);
+      }
+    }
+
+    async function submitScore(score) {
+      const wineNum = tastingOrder[currentIndex]; const currentScore = scores[wineNum];
+      if (currentScore === score) { delete scores[wineNum]; try { await fetch('/api/score/clear', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: session.name, wine: wineNum }) }); } catch(e) {} renderCurrentWine(); buildJumpGrid(); return; }
+      scores[wineNum] = score; renderCurrentWine(); buildJumpGrid();
+      try { await fetch('/api/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: session.name, wine: wineNum, score }) }); } catch(e) { if (currentScore !== undefined) scores[wineNum] = currentScore; else delete scores[wineNum]; renderCurrentWine(); }
+      if (currentIndex < tastingOrder.length - 1) setTimeout(() => { currentIndex++; renderCurrentWine(); }, 300);
+    }
+
+    document.getElementById('prev-btn').addEventListener('click', () => { currentIndex = currentIndex > 0 ? currentIndex - 1 : tastingOrder.length - 1; renderCurrentWine(); });
+    document.getElementById('next-btn').addEventListener('click', () => { currentIndex = currentIndex < tastingOrder.length - 1 ? currentIndex + 1 : 0; renderCurrentWine(); });
+    document.getElementById('jump-btn').addEventListener('click', () => { buildJumpGrid(); document.getElementById('jump-modal').classList.remove('hidden'); });
+
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.addEventListener('touchend', (e) => { const diff = touchStartX - e.changedTouches[0].screenX; if (Math.abs(diff) > 60) { if (diff > 0) document.getElementById('next-btn').click(); else document.getElementById('prev-btn').click(); } }, { passive: true });
+
+    init();
+  </script>
+</body>
+</html>
