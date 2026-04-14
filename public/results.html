@@ -8,13 +8,15 @@
 </head>
 <body>
   <div class="container results-page">
-    <div class="logo">&#127942;</div>
+    <div class="logo"><img src="" alt="Granate Wine Club"></div>
     <h1>Rankings</h1>
+
     <div id="waiting" class="waiting-msg">
       <div class="spinner"></div>
       <p>The host hasn't revealed the rankings yet.</p>
       <p class="hint">This page will update automatically.</p>
     </div>
+
     <div id="rankings-section" class="hidden">
       <div id="winner-banner" class="winner-banner hidden">
         <div class="winner-medal">&#129351;</div>
@@ -24,45 +26,71 @@
           <span class="winner-score" id="winner-score"></span>
         </div>
       </div>
+
       <div id="rankings-list" class="results-rankings"></div>
     </div>
+
     <div class="footer-links">
       <a href="/score">&larr; Back to Scoring</a>
     </div>
   </div>
-  <style>
-    .result-wine-num { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
-  </style>
+
   <script>
     async function loadRankings() {
       try {
         const res = await fetch('/api/rankings');
+
         if (res.status === 403) {
+          // Not revealed yet
           document.getElementById('waiting').classList.remove('hidden');
           document.getElementById('rankings-section').classList.add('hidden');
           return;
         }
+
         if (!res.ok) return;
+
         const rankings = await res.json();
+
         document.getElementById('waiting').classList.add('hidden');
         document.getElementById('rankings-section').classList.remove('hidden');
+
+        // Winner banner
         if (rankings.length > 0 && rankings[0].numScores > 0) {
           const winner = rankings[0];
-          const winnerLabel = winner.name ? winner.name + ' (Wine #' + winner.wine + ')' : 'Wine #' + winner.wine;
+          const winnerLabel = winner.name ? `${winner.name} (Wine #${winner.wine})` : `Wine #${winner.wine}`;
           document.getElementById('winner-wine').textContent = winnerLabel;
-          document.getElementById('winner-score').textContent = 'Average: ' + winner.average.toFixed(2);
+          document.getElementById('winner-score').textContent = `Average: ${winner.average.toFixed(2)}`;
           document.getElementById('winner-banner').classList.remove('hidden');
         }
+
+        // Full list
         const container = document.getElementById('rankings-list');
-        container.innerHTML = rankings.map(r => {
+        container.innerHTML = rankings.map((r) => {
           const medal = r.rank === 1 ? '&#129351;' : r.rank === 2 ? '&#129352;' : r.rank === 3 ? '&#129353;' : '';
           const barWidth = r.average > 0 ? (r.average / 10) * 100 : 0;
           const wineLabel = r.name
-            ? '<div class="result-wine">' + escHtml(r.name) + '</div><div class="result-wine-num">Wine #' + r.wine + '</div>'
-            : '<div class="result-wine">Wine #' + r.wine + '</div>';
-          return '<div class="result-row ' + (r.rank <= 3 ? 'top-' + r.rank : '') + '"><div class="result-rank">' + (medal || '#' + r.rank) + '</div><div class="result-info">' + wineLabel + '<div class="result-bar-container"><div class="result-bar" style="width:' + barWidth + '%"></div></div></div><div class="result-stats"><div class="result-avg">' + r.average.toFixed(2) + '</div><div class="result-std">SD ' + r.stdDev.toFixed(2) + '</div></div></div>';
+            ? `<div class="result-wine">${escHtml(r.name)}</div><div class="result-wine-num">Wine #${r.wine}</div>`
+            : `<div class="result-wine">Wine #${r.wine}</div>`;
+          return `
+            <div class="result-row ${r.rank <= 3 ? 'top-' + r.rank : ''}">
+              <div class="result-rank">${medal || '#' + r.rank}</div>
+              <div class="result-info">
+                ${wineLabel}
+                <div class="result-bar-container">
+                  <div class="result-bar" style="width:${barWidth}%"></div>
+                </div>
+              </div>
+              <div class="result-stats">
+                <div class="result-avg">${r.average.toFixed(2)}</div>
+                <div class="result-std">SD ${r.stdDev.toFixed(2)}</div>
+              </div>
+            </div>
+          `;
         }).join('');
-      } catch (e) { console.error('Failed to load rankings', e); }
+
+      } catch (e) {
+        console.error('Failed to load rankings', e);
+      }
     }
 
     function escHtml(str) {
@@ -74,59 +102,13 @@
     loadRankings();
     setInterval(loadRankings, 5000);
   </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Results - Wine Tasting</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <div class="container results-page">
-    <div class="logo">&#127942;</div>
-    <h1>Rankings</h1>
-    <div id="waiting" class="waiting-msg">
-      <div class="spinner"></div>
-      <p>The host hasn't revealed the rankings yet.</p>
-      <p class="hint">This page will update automatically.</p>
-    </div>
-    <div id="rankings-section" class="hidden">
-      <div id="winner-banner" class="winner-banner hidden">
-        <div class="winner-medal">&#129351;</div>
-        <div class="winner-text">
-          <span class="winner-label">WINNER</span>
-          <span class="winner-wine" id="winner-wine"></span>
-          <span class="winner-score" id="winner-score"></span>
-        </div>
-      </div>
-      <div id="rankings-list" class="results-rankings"></div>
-    </div>
-    <div class="footer-links"><a href="/score">&larr; Back to Scoring</a></div>
-  </div>
-  <script>
-    async function loadRankings() {
-      try {
-        const res = await fetch('/api/rankings');
-        if (res.status === 403) { document.getElementById('waiting').classList.remove('hidden'); document.getElementById('rankings-section').classList.add('hidden'); return; }
-        if (!res.ok) return;
-        const rankings = await res.json();
-        document.getElementById('waiting').classList.add('hidden'); document.getElementById('rankings-section').classList.remove('hidden');
-        if (rankings.length > 0 && rankings[0].numScores > 0) {
-          document.getElementById('winner-wine').textContent = `Wine #${rankings[0].wine}`;
-          document.getElementById('winner-score').textContent = `Average: ${rankings[0].average.toFixed(2)}`;
-          document.getElementById('winner-banner').classList.remove('hidden');
-        }
-        const container = document.getElementById('rankings-list');
-        container.innerHTML = rankings.map(r => {
-          const medal = r.rank === 1 ? '&#129351;' : r.rank === 2 ? '&#129352;' : r.rank === 3 ? '&#129353;' : '';
-          const barWidth = r.average > 0 ? (r.average / 10) * 100 : 0;
-          return `<div class="result-row ${r.rank <= 3 ? 'top-' + r.rank : ''}"><div class="result-rank">${medal || '#' + r.rank}</div><div class="result-info"><div class="result-wine">Wine #${r.wine}</div><div class="result-bar-container"><div class="result-bar" style="width:${barWidth}%"></div></div></div><div class="result-stats"><div class="result-avg">${r.average.toFixed(2)}</div><div class="result-std">SD ${r.stdDev.toFixed(2)}</div></div></div>`;
-        }).join('');
-      } catch(e) { console.error('Failed to load rankings', e); }
+  <style>
+    .result-wine-num {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 1px;
     }
-    loadRankings(); setInterval(loadRankings, 5000);
-  </script>
+  </style>
+<script src="/logo.js"></script>
 </body>
 </html>
