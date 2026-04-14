@@ -1,6 +1,866 @@
+/* ─── Wine Tasting Scorer — CSS ─────────────────────────────────────────── */
 
+:root {
+  --bg-dark: #1a0a0e;
+  --bg-card: #2a1218;
+  --bg-card-hover: #3a1c24;
+  --wine-primary: #8b2252;
+  --wine-light: #c4526e;
+  --wine-deep: #5c0a2a;
+  --gold: #d4a853;
+  --gold-light: #f0d48a;
+  --cream: #f5ead6;
+  --cream-dim: #c4b9a4;
+  --text: #f5ead6;
+  --text-dim: #a89888;
+  --danger: #c0392b;
+  --success: #27ae60;
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
 
-/* --- Wine Name Inputs (Admin) --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  min-height: 100dvh;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Logo & Headings ───────────────────────────────────────────────────── */
+
+.logo {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.logo img {
+  width: 200px;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+
+h1 {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+h2 {
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  margin-bottom: 32px;
+  font-size: 15px;
+}
+
+/* ─── Forms ─────────────────────────────────────────────────────────────── */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  color: var(--cream-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"] {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 2px solid rgba(139, 34, 82, 0.3);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 18px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: var(--wine-light);
+}
+
+input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────── */
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--wine-primary), var(--wine-deep));
+  color: var(--cream);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--wine-light), var(--wine-primary));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  border: 2px solid var(--wine-primary);
+  color: var(--wine-light);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--wine-deep);
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  width: auto;
+}
+
+.btn-nav {
+  padding: 12px 24px;
+  background: var(--bg-card);
+  border: 2px solid rgba(139, 34, 82, 0.4);
+  color: var(--cream);
+  border-radius: var(--radius);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 90px;
+}
+
+.btn-nav:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--wine-light);
+}
+
+.btn-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  opacity: 0.85;
+}
+
+/* ─── Status Messages ───────────────────────────────────────────────────── */
+
+.status-msg {
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.status-msg.error {
+  background: rgba(192, 57, 43, 0.2);
+  border: 1px solid var(--danger);
+  color: #ff8a80;
+}
+
+.status-msg.success {
+  background: rgba(39, 174, 96, 0.2);
+  border: 1px solid var(--success);
+  color: #81c784;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ─── Footer Links ──────────────────────────────────────────────────────── */
+
+.footer-links {
+  margin-top: auto;
+  padding-top: 32px;
+  text-align: center;
+}
+
+.footer-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.footer-links a:hover {
+  color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCORING PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.score-page {
+  padding-top: 16px;
+}
+
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.taster-name {
+  font-weight: 600;
+  color: var(--gold);
+  font-size: 16px;
+}
+
+.results-link {
+  background: var(--bg-card);
+  color: var(--gold);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  display: none;
+  border: 1px solid var(--gold);
+  animation: pulse 2s infinite;
+}
+
+.results-link.visible {
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Progress */
+.progress-bar {
+  height: 4px;
+  background: var(--bg-card);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--wine-primary), var(--gold));
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+
+/* Wine Display */
+.wine-display {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.wine-number-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.wine-number {
+  font-size: 72px;
+  font-weight: 800;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(212, 168, 83, 0.3);
+}
+
+/* Score Grid */
+.score-section {
+  margin-bottom: 24px;
+}
+
+.score-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.score-btn {
+  aspect-ratio: 1;
+  border: 2px solid rgba(139, 34, 82, 0.4);
+  background: var(--bg-card);
+  color: var(--cream);
+  border-radius: var(--radius);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--wine-light);
+}
+
+.score-btn.active {
+  background: linear-gradient(135deg, var(--wine-primary), var(--wine-light));
+  border-color: var(--gold);
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(139, 34, 82, 0.5);
+}
+
+/* Navigation */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wine-dots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(139, 34, 82, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dot.current {
+  background: var(--gold);
+  transform: scale(1.4);
+}
+
+.dot.scored {
+  background: var(--wine-light);
+}
+
+.dot.current.scored {
+  background: var(--gold);
+}
+
+.wine-jump {
+  text-align: center;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-content h3 {
+  color: var(--gold);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.jump-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.jump-btn {
+  padding: 12px;
+  background: var(--bg-dark);
+  border: 2px solid rgba(139, 34, 82, 0.3);
+  color: var(--cream);
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jump-btn.scored {
+  border-color: var(--wine-light);
+  background: rgba(139, 34, 82, 0.2);
+}
+
+.jump-btn:hover {
+  background: var(--wine-deep);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-header h1 {
+  font-size: 22px;
+  text-align: left;
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card-danger {
+  border: 1px solid rgba(192, 57, 43, 0.3);
+}
+
+.badge {
+  background: var(--wine-primary);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.config-row label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.config-row input {
+  width: 80px;
+}
+
+/* Participants */
+.participant-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(139, 34, 82, 0.15);
+}
+
+.participant-row:last-child {
+  border-bottom: none;
+}
+
+.p-name {
+  font-weight: 600;
+  color: var(--cream);
+  min-width: 80px;
+}
+
+.p-start {
+  font-size: 12px;
+  color: var(--text-dim);
+  min-width: 60px;
+}
+
+.p-progress {
+  flex: 1;
+  height: 6px;
+  background: rgba(139, 34, 82, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.p-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--wine-primary), var(--gold));
+  transition: width 0.3s;
+}
+
+.p-score-count {
+  font-size: 13px;
+  color: var(--text-dim);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Score Table */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.score-table th,
+.score-table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(139, 34, 82, 0.15);
+  white-space: nowrap;
+}
+
+.score-table th {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.p-name-cell {
+  text-align: left !important;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.scored-cell {
+  color: var(--cream);
+  font-weight: 600;
+}
+
+.empty-cell {
+  color: rgba(139, 34, 82, 0.4);
+}
+
+.avg-row td {
+  border-top: 2px solid var(--wine-primary);
+  color: var(--gold);
+}
+
+/* Rankings */
+.reveal-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.reveal-controls .btn-primary {
+  width: auto;
+  padding: 10px 24px;
+}
+
+.reveal-status {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.reveal-status.live {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(139, 34, 82, 0.15);
+  font-size: 14px;
+}
+
+.ranking-row:last-child {
+  border-bottom: none;
+}
+
+.ranking-row.top-1 {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.ranking-row.top-2 {
+  color: #c0c0c0;
+}
+
+.ranking-row.top-3 {
+  color: #cd7f32;
+}
+
+.rank {
+  min-width: 50px;
+}
+
+.r-wine {
+  font-weight: 600;
+  min-width: 70px;
+}
+
+.r-avg, .r-std, .r-count {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESULTS PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.results-page {
+  align-items: center;
+}
+
+.waiting-msg {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(139, 34, 82, 0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.winner-banner {
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.15), rgba(139, 34, 82, 0.25));
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  width: 100%;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 10px rgba(212, 168, 83, 0.2); }
+  to { box-shadow: 0 0 30px rgba(212, 168, 83, 0.4); }
+}
+
+.winner-medal {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.winner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.winner-label {
+  font-size: 14px;
+  color: var(--gold);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.winner-wine {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.winner-score {
+  font-size: 16px;
+  color: var(--cream-dim);
+}
+
+.results-rankings {
+  width: 100%;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(139, 34, 82, 0.15);
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.result-rank {
+  font-size: 24px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.result-row.top-1 .result-rank { color: var(--gold); }
+.result-row.top-2 .result-rank { color: #c0c0c0; }
+.result-row.top-3 .result-rank { color: #cd7f32; }
+
+.result-info {
+  flex: 1;
+}
+
+.result-wine {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.result-bar-container {
+  height: 6px;
+  background: rgba(139, 34, 82, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.result-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--wine-primary), var(--gold));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.result-stats {
+  text-align: right;
+  min-width: 60px;
+}
+
+.result-avg {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.result-std {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.result-row.top-1 { color: var(--gold-light); }
+.result-row.top-2 { color: #e0e0e0; }
+.result-row.top-3 { color: #e0a060; }
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 400px) {
+  .wine-number {
+    font-size: 56px;
+  }
+
+  .score-grid {
+    gap: 8px;
+  }
+
+  .score-btn {
+    font-size: 18px;
+  }
+
+  .btn-nav {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-width: 70px;
+  }
+}
+
+/* ─── Wine Name Inputs (Admin) ───────────────────────────────────────────── */
 
 .wine-name-row {
   display: flex;
@@ -36,160 +896,4 @@
 .wine-name-input::placeholder {
   color: var(--text-dim);
   opacity: 0.6;
-}
-:root {
-  --bg-dark: #1a0a0e;
-  --bg-card: #2a1218;
-  --bg-card-hover: #3a1c24;
-  --wine-primary: #8b2252;
-  --wine-light: #c4526e;
-  --wine-deep: #5c0a2a;
-  --gold: #d4a853;
-  --gold-light: #f0d48a;
-  --cream: #f5ead6;
-  --cream-dim: #c4b9a4;
-  --text: #f5ead6;
-  --text-dim: #a89888;
-  --danger: #c0392b;
-  --success: #27ae60;
-  --radius: 12px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.4);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-dark); color: var(--text); min-height: 100dvh; line-height: 1.5; }
-.container { max-width: 600px; margin: 0 auto; padding: 24px 20px; min-height: 100dvh; display: flex; flex-direction: column; }
-.logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
-h1 { text-align: center; font-size: 28px; font-weight: 700; color: var(--gold); letter-spacing: 1px; margin-bottom: 4px; }
-h2 { font-size: 18px; color: var(--gold); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.subtitle { text-align: center; color: var(--text-dim); margin-bottom: 32px; font-size: 15px; }
-.form-group { margin-bottom: 20px; }
-label { display: block; font-size: 14px; color: var(--cream-dim); margin-bottom: 6px; font-weight: 500; }
-input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 14px 16px; background: var(--bg-card); border: 2px solid rgba(139, 34, 82, 0.3); border-radius: var(--radius); color: var(--text); font-size: 18px; outline: none; transition: border-color 0.2s; }
-input:focus { border-color: var(--wine-light); }
-input::placeholder { color: var(--text-dim); opacity: 0.5; }
-.hint { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
-.btn-primary { display: block; width: 100%; padding: 16px; background: linear-gradient(135deg, var(--wine-primary), var(--wine-deep)); color: var(--cream); border: none; border-radius: var(--radius); font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
-.btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, var(--wine-light), var(--wine-primary)); transform: translateY(-1px); box-shadow: var(--shadow); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-secondary { background: var(--bg-card); border: 2px solid var(--wine-primary); color: var(--wine-light); padding: 10px 20px; border-radius: var(--radius); font-size: 15px; cursor: pointer; transition: all 0.2s; }
-.btn-secondary:hover { background: var(--wine-deep); }
-.btn-small { padding: 8px 16px; font-size: 14px; border-radius: 8px; width: auto; }
-.btn-nav { padding: 12px 24px; background: var(--bg-card); border: 2px solid rgba(139, 34, 82, 0.4); color: var(--cream); border-radius: var(--radius); font-size: 16px; cursor: pointer; transition: all 0.2s; min-width: 90px; }
-.btn-nav:hover { background: var(--bg-card-hover); border-color: var(--wine-light); }
-.btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-danger { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-.btn-danger:hover { opacity: 0.85; }
-.status-msg { text-align: center; padding: 10px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
-.status-msg.error { background: rgba(192, 57, 43, 0.2); border: 1px solid var(--danger); color: #ff8a80; }
-.status-msg.success { background: rgba(39, 174, 96, 0.2); border: 1px solid var(--success); color: #81c784; }
-.hidden { display: none !important; }
-.footer-links { margin-top: auto; padding-top: 32px; text-align: center; }
-.footer-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; }
-.footer-links a:hover { color: var(--gold); }
-
-/* Scoring Page */
-.score-page { padding-top: 16px; }
-.score-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.taster-name { font-weight: 600; color: var(--gold); font-size: 16px; }
-.results-link { background: var(--bg-card); color: var(--gold); text-decoration: none; padding: 6px 14px; border-radius: 20px; font-size: 13px; display: none; border: 1px solid var(--gold); animation: pulse 2s infinite; }
-.results-link.visible { display: inline-block; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-.progress-bar { height: 4px; background: var(--bg-card); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--wine-primary), var(--gold)); transition: width 0.3s ease; border-radius: 2px; }
-.progress-text { text-align: center; font-size: 12px; color: var(--text-dim); margin-bottom: 24px; }
-.wine-display { text-align: center; padding: 32px 0; }
-.wine-number-label { font-size: 14px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
-.wine-number { font-size: 72px; font-weight: 800; color: var(--gold); text-shadow: 0 0 40px rgba(212, 168, 83, 0.3); }
-.score-section { margin-bottom: 24px; }
-.score-label { text-align: center; font-size: 14px; color: var(--text-dim); margin-bottom: 12px; }
-.score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 350px; margin: 0 auto; }
-.score-btn { aspect-ratio: 1; border: 2px solid rgba(139, 34, 82, 0.4); background: var(--bg-card); color: var(--cream); border-radius: var(--radius); font-size: 22px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
-.score-btn:hover { background: var(--bg-card-hover); border-color: var(--wine-light); }
-.score-btn.active { background: linear-gradient(135deg, var(--wine-primary), var(--wine-light)); border-color: var(--gold); color: white; transform: scale(1.08); box-shadow: 0 0 20px rgba(139, 34, 82, 0.5); }
-.nav-buttons { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-.wine-dots { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; align-items: center; font-size: 13px; color: var(--text-dim); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(139, 34, 82, 0.3); cursor: pointer; transition: all 0.2s; }
-.dot.current { background: var(--gold); transform: scale(1.4); }
-.dot.scored { background: var(--wine-light); }
-.dot.current.scored { background: var(--gold); }
-.wine-jump { text-align: center; }
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-.modal-content { background: var(--bg-card); border-radius: var(--radius); padding: 24px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto; }
-.modal-content h3 { color: var(--gold); margin-bottom: 16px; text-align: center; }
-.jump-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-.jump-btn { padding: 12px; background: var(--bg-dark); border: 2px solid rgba(139, 34, 82, 0.3); color: var(--cream); border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; }
-.jump-btn.scored { border-color: var(--wine-light); background: rgba(139, 34, 82, 0.2); }
-.jump-btn:hover { background: var(--wine-deep); }
-
-/* Admin Page */
-.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.admin-header h1 { font-size: 22px; text-align: left; }
-.card { background: var(--bg-card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
-.card-danger { border: 1px solid rgba(192, 57, 43, 0.3); }
-.badge { background: var(--wine-primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-.config-row { display: flex; align-items: center; gap: 12px; }
-.config-row label { margin: 0; white-space: nowrap; }
-.config-row input { width: 80px; }
-.participant-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(139, 34, 82, 0.15); }
-.participant-row:last-child { border-bottom: none; }
-.p-name { font-weight: 600; color: var(--cream); min-width: 80px; }
-.p-start { font-size: 12px; color: var(--text-dim); min-width: 60px; }
-.p-progress { flex: 1; height: 6px; background: rgba(139, 34, 82, 0.2); border-radius: 3px; overflow: hidden; }
-.p-progress-bar { height: 100%; background: linear-gradient(90deg, var(--wine-primary), var(--gold)); transition: width 0.3s; }
-.p-score-count { font-size: 13px; color: var(--text-dim); min-width: 40px; text-align: right; }
-.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.score-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.score-table th, .score-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid rgba(139, 34, 82, 0.15); white-space: nowrap; }
-.score-table th { color: var(--gold); font-size: 12px; font-weight: 600; }
-.p-name-cell { text-align: left !important; font-weight: 600; color: var(--cream); }
-.scored-cell { color: var(--cream); font-weight: 600; }
-.empty-cell { color: rgba(139, 34, 82, 0.4); }
-.avg-row td { border-top: 2px solid var(--wine-primary); color: var(--gold); }
-.reveal-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.reveal-controls .btn-primary { width: auto; padding: 10px 24px; }
-.reveal-status { font-size: 13px; color: var(--text-dim); }
-.reveal-status.live { color: var(--success); font-weight: 600; }
-.ranking-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(139, 34, 82, 0.15); font-size: 14px; }
-.ranking-row:last-child { border-bottom: none; }
-.ranking-row.top-1 { color: var(--gold); font-weight: 600; }
-.ranking-row.top-2 { color: #c0c0c0; }
-.ranking-row.top-3 { color: #cd7f32; }
-.rank { min-width: 50px; }
-.r-wine { font-weight: 600; min-width: 70px; }
-.r-avg, .r-std, .r-count { font-size: 12px; color: var(--text-dim); }
-
-/* Results Page */
-.results-page { align-items: center; }
-.waiting-msg { text-align: center; padding: 40px 0; }
-.spinner { width: 40px; height: 40px; border: 3px solid rgba(139, 34, 82, 0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.winner-banner { background: linear-gradient(135deg, rgba(212, 168, 83, 0.15), rgba(139, 34, 82, 0.25)); border: 2px solid var(--gold); border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 24px; width: 100%; animation: glow 2s ease-in-out infinite alternate; }
-@keyframes glow { from { box-shadow: 0 0 10px rgba(212, 168, 83, 0.2); } to { box-shadow: 0 0 30px rgba(212, 168, 83, 0.4); } }
-.winner-medal { font-size: 48px; margin-bottom: 8px; }
-.winner-text { display: flex; flex-direction: column; gap: 4px; }
-.winner-label { font-size: 14px; color: var(--gold); letter-spacing: 4px; text-transform: uppercase; }
-.winner-wine { font-size: 32px; font-weight: 800; color: var(--gold); }
-.winner-score { font-size: 16px; color: var(--cream-dim); }
-.results-rankings { width: 100%; }
-.result-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(139, 34, 82, 0.15); }
-.result-row:last-child { border-bottom: none; }
-.result-rank { font-size: 24px; min-width: 40px; text-align: center; }
-.result-row.top-1 .result-rank { color: var(--gold); }
-.result-row.top-2 .result-rank { color: #c0c0c0; }
-.result-row.top-3 .result-rank { color: #cd7f32; }
-.result-info { flex: 1; }
-.result-wine { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
-.result-bar-container { height: 6px; background: rgba(139, 34, 82, 0.2); border-radius: 3px; overflow: hidden; }
-.result-bar { height: 100%; background: linear-gradient(90deg, var(--wine-primary), var(--gold)); border-radius: 3px; transition: width 0.5s ease; }
-.result-stats { text-align: right; min-width: 60px; }
-.result-avg { font-size: 20px; font-weight: 800; color: var(--gold); }
-.result-std { font-size: 11px; color: var(--text-dim); }
-.result-row.top-1 { color: var(--gold-light); }
-.result-row.top-2 { color: #e0e0e0; }
-.result-row.top-3 { color: #e0a060; }
-@media (max-width: 400px) {
-  .wine-number { font-size: 56px; }
-  .score-grid { gap: 8px; }
-  .score-btn { font-size: 18px; }
-  .btn-nav { padding: 10px 16px; font-size: 14px; min-width: 70px; }
 }
